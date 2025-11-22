@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+<img width="800" height="316" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
 # Run and deploy your AI Studio app
@@ -17,6 +17,25 @@ View your app in AI Studio.
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## App screenshots
+
+<div style="display:flex;gap:12px;align-items:flex-start">
+  <figure style="margin:0">
+    <img src="assets/page1.png" alt="App homepage" width="560" />
+    <figcaption style="text-align:center;font-size:0.9rem">
+      Page 1 — App homepage / 本應用首頁
+      <div style="font-size:0.85rem;color:#666">Landing screen where users start editing by uploading an image. 上傳圖片開始編輯的首頁畫面。</div>
+    </figcaption>
+  </figure>
+  <figure style="margin:0">
+    <img src="assets/page2.png" alt="Editor - select region and enter text" width="560" />
+    <figcaption style="text-align:center;font-size:0.9rem">
+      Page 2 — Editor after upload: select region and enter replacement text / 上傳後編輯畫面：選取欲替換區域並輸入替換文字
+      <div style="font-size:0.85rem;color:#666">Screenshot showing selection box and the replacement-text input before generating the inpainted image. 顯示選取框與輸入替換文字的編輯畫面。</div>
+    </figcaption>
+  </figure>
+</div>
 
 ## Text edit demo (文字替換示意)
 
