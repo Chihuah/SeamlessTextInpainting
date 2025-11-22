@@ -22,14 +22,14 @@ View your app in AI Studio.
 
 <div style="display:flex;gap:12px;align-items:flex-start">
   <figure style="margin:0">
-    <img src="assets/page1.png" alt="App homepage" width="560" />
+    <img src="assets/page1.png" alt="App homepage" width="400" />
     <figcaption style="text-align:center;font-size:0.9rem">
       Page 1 — App homepage / 本應用首頁
       <div style="font-size:0.85rem;color:#666">Landing screen where users start editing by uploading an image. 上傳圖片開始編輯的首頁畫面。</div>
     </figcaption>
   </figure>
   <figure style="margin:0">
-    <img src="assets/page2.png" alt="Editor - select region and enter text" width="560" />
+    <img src="assets/page2.png" alt="Editor - select region and enter text" width="400" />
     <figcaption style="text-align:center;font-size:0.9rem">
       Page 2 — Editor after upload: select region and enter replacement text / 上傳後編輯畫面：選取欲替換區域並輸入替換文字
       <div style="font-size:0.85rem;color:#666">Screenshot showing selection box and the replacement-text input before generating the inpainted image. 顯示選取框與輸入替換文字的編輯畫面。</div>
@@ -45,11 +45,11 @@ The following demonstrates a feature of this project: select a text region in an
 
 <div style="display:flex;gap:12px;align-items:flex-start">
   <figure style="margin:0">
-    <img src="assets/Before.png" alt="Before - original image with Chinese text" width="460" />
+    <img src="assets/Before.png" alt="Before - original image with Chinese text" width="400" />
     <figcaption style="text-align:center;font-size:0.9rem">Before — 原始圖片</figcaption>
   </figure>
   <figure style="margin:0">
-    <img src="assets/After.png" alt="After - edited image with English text" width="460" />
+    <img src="assets/After.png" alt="After - edited image with English text" width="400" />
     <figcaption style="text-align:center;font-size:0.9rem">After — 編修後（已替換文字）</figcaption>
   </figure>
 </div>
