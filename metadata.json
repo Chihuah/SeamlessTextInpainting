@@ -1,0 +1,5 @@
+{
+  "name": "TextInpaint Pro",
+  "description": "A professional tool using Gemini Nano Banana Pro to seamlessly replace text in images while maintaining original aesthetics.",
+  "requestFramePermissions": []
+}
