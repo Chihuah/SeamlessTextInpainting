@@ -1,3 +1,4 @@
+
 export interface BoundingBox {
   x: number; // Percentage 0-100
   y: number; // Percentage 0-100

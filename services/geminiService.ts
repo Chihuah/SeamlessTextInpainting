@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { BoundingBox } from "../types";
 
@@ -23,13 +24,18 @@ export const base64ToFile = async (base64Url: string, fileName: string): Promise
   return new File([blob], fileName, { type: blob.type });
 };
 
-// Create a black and white mask image from the selection
-const createMaskBase64 = (imageFile: File, selection: BoundingBox): Promise<string> => {
+/**
+ * IMPROVED MASK STRATEGY: Visual Reference
+ * Instead of a binary B&W mask which loses context, we create a "Visual Guide".
+ * We take the original image, DIM the non-selected areas significantly,
+ * and draw a bright highlight frame around the selected area.
+ * This helps the VLM align pixels perfectly because it can still "see" the background content.
+ */
+const createVisualGuideBase64 = (imageFile: File, selection: BoundingBox): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Use original image dimensions for precision
       canvas.width = img.width;
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
@@ -38,19 +44,32 @@ const createMaskBase64 = (imageFile: File, selection: BoundingBox): Promise<stri
         return;
       }
 
-      // 1. Fill the entire canvas with BLACK (Protected area)
-      ctx.fillStyle = "black";
+      // 1. Draw the original image first
+      ctx.drawImage(img, 0, 0);
+
+      // 2. Create the "Dimmed" overlay for the whole image
+      ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; // Dark overlay
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 2. Calculate coordinates for the selection
+      // 3. Calculate selection coordinates
       const x = (selection.x / 100) * canvas.width;
       const y = (selection.y / 100) * canvas.height;
       const w = (selection.width / 100) * canvas.width;
       const h = (selection.height / 100) * canvas.height;
 
-      // 3. Fill the selection with WHITE (Edit area)
-      ctx.fillStyle = "white";
-      ctx.fillRect(x, y, w, h);
+      // 4. "Cut out" the selection to reveal the original image (The focus area)
+      // We do this by drawing the image again, but clipped to the selection rect
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.clip();
+      ctx.drawImage(img, 0, 0); // Redraw original at full brightness here
+      ctx.restore();
+
+      // 5. Draw a bright Green border around the selection to explicitly tell the model "HERE"
+      ctx.strokeStyle = "#00FF00"; // Bright Green
+      ctx.lineWidth = Math.max(2, canvas.width * 0.005); // Dynamic stroke width
+      ctx.strokeRect(x, y, w, h);
 
       // Return base64 without prefix
       resolve(canvas.toDataURL("image/png").split(",")[1]);
@@ -69,23 +88,23 @@ export const inpaintText = async (
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const base64Image = await fileToBase64(imageFile);
-    const base64Mask = await createMaskBase64(imageFile, selection);
+    // Use the new Visual Guide strategy instead of simple binary mask
+    const base64VisualGuide = await createVisualGuideBase64(imageFile, selection);
 
-    // Construct a prompt that relies on the mask
     const prompt = `
-      Task: Precise Text Inpainting.
+      Task: Professional Image Text Replacement.
       
-      I have provided two images:
-      1. The 'Source Image' (to be edited).
-      2. A 'Mask Image' (Black and White).
-      
+      Input Data:
+      1. [Source Image]: The original image to be edited.
+      2. [Location Guide]: A reference version of the image where the area to edit is BRIGHT and framed in GREEN, while the rest is darkened.
+
       INSTRUCTIONS:
-      1. Use the second image (Mask Image) as a strict location guide.
-      2. Identify the area in the Source Image that corresponds to the WHITE pixels in the Mask Image.
-      3. ONLY inside this specific white area, erase the existing text and inpaint the new text: "${newText}".
-      4. STRICTLY preserve all pixels in the Source Image where the Mask Image is BLACK. Do not modify any other text in the image, even if it looks similar.
-      5. Maintain the original background texture, font style, size, and color of the replaced text area to blend seamlessly.
-      6. Output the final full-color image.
+      1. Look at the [Location Guide]. Focus ONLY on the bright area inside the GREEN frame.
+      2. Find the exact corresponding pixels in the [Source Image].
+      3. In that specific area of the [Source Image], replace the existing text with: "${newText}".
+      4. PRESERVE the background texture, lighting, and style of the original image perfectly.
+      5. DO NOT touch any part of the image that is darkened in the [Location Guide].
+      6. Return the final clean image (without the green frame or darkening).
     `;
 
     const response = await ai.models.generateContent({
@@ -102,7 +121,7 @@ export const inpaintText = async (
           {
             inlineData: {
               mimeType: "image/png",
-              data: base64Mask,
+              data: base64VisualGuide,
             },
           },
         ],
@@ -125,15 +144,17 @@ export const inpaintText = async (
       }
     }
     
+    // Fallback: Check if model returned text error
     const textPart = parts.find(p => p.text);
     if (textPart) {
-        throw new Error(`Model returned text instead of image: ${textPart.text}`);
+       // Sometimes the model talks back. Treat it as an error or log it.
+       throw new Error(`Model returned text: ${textPart.text}`);
     }
 
     throw new Error("Could not generate image.");
 
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini Inpaint Error:", error);
     throw error;
   }
 };

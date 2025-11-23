@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import CanvasEditor from './components/CanvasEditor';
 import ApiKeySelector from './components/ApiKeySelector';
@@ -49,7 +50,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleProcess = async () => {
-    if (!state.originalFile || !state.selection || !state.inputText) return;
+    if (!state.originalFile || !state.inputText || !state.selection) return;
 
     setState(prev => ({ ...prev, isProcessing: true }));
 
@@ -120,19 +121,24 @@ const App: React.FC = () => {
   };
 
   const confirmReset = () => {
-    setState({
+    setState(prev => ({
+        ...prev,
         imageSrc: null,
         originalFile: null,
         selection: null,
         inputText: '',
         isProcessing: false,
         resultSrc: null,
-    });
+    }));
     if (fileInputRef.current) fileInputRef.current.value = '';
     setShowResetConfirmation(false);
   };
 
-  const isReadyToSubmit = state.selection && state.inputText.trim().length > 0 && !state.isProcessing;
+  // Validation
+  const isReadyToSubmit = 
+      !state.isProcessing && 
+      state.inputText.trim().length > 0 && 
+      state.selection !== null;
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-200 font-sans selection:bg-purple-500 selection:text-white">
@@ -150,14 +156,10 @@ const App: React.FC = () => {
            </div>
            
            <div className="flex items-center gap-4">
-             <div className="hidden md:block text-xs text-gray-500 font-mono border border-gray-800 px-2 py-1 rounded">
-               Model: gemini-3-pro-image
-             </div>
              {state.imageSrc && (
                 <button 
                   onClick={() => setShowResetConfirmation(true)}
                   className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded hover:bg-red-500/20 transition-colors"
-                  title="Discard all changes and start with a new image"
                 >
                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -178,19 +180,16 @@ const App: React.FC = () => {
             {/* Intro Section */}
             <div className="text-center mb-12 space-y-4">
               <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                Seamless Text Inpainting <br/>
+                Seamless Text Replacement <br/>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">無縫文字修改專家</span>
               </h2>
               <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-                Effortlessly replace text in images while maintaining the original background texture. Perfect for translating English to Traditional Chinese or correcting incorrect Chinese characters in the original image.
-                <br/>
-                <span className="text-gray-500 text-sm">
-                  輕鬆替換圖片中的文字，同時完美保留原始背景紋理。特別適用於將英文修改為繁體中文或者修正原本圖片中不正確的中文字。
-                </span>
+                Replace text in images while perfectly preserving background textures and lighting.
+                Powered by Gemini Nano Banana Pro (Gemini 3 Pro Image).
               </p>
             </div>
 
-            {/* Upload Area (Moved Up) */}
+            {/* Upload Area */}
             <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-gray-800 rounded-3xl bg-gray-900/50 hover:bg-gray-900 transition-all duration-300 group cursor-pointer mb-16"
                  onClick={() => fileInputRef.current?.click()}
             >
@@ -199,10 +198,10 @@ const App: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Start Editing / 開始編輯</h2>
+              <h2 className="text-2xl font-bold text-white mb-3">Upload Image / 上傳圖片</h2>
               <p className="text-gray-500 mb-8 text-center max-w-md px-4">
-                Click here to upload your image <br/>
-                <span className="text-xs opacity-70">點擊此處上傳您的圖片 (JPG, PNG)</span>
+                Supported formats: JPG, PNG <br/>
+                <span className="text-xs opacity-70">支援高解析度圖片</span>
               </p>
               <button 
                 className="bg-white text-black px-10 py-3 rounded-full font-bold hover:bg-gray-200 transition-all shadow-lg shadow-white/10 transform group-hover:translate-y-[-2px]"
@@ -210,9 +209,6 @@ const App: React.FC = () => {
                 Select Image
               </button>
             </div>
-
-            {/* Example Section Removed */}
-
           </div>
         )}
 
@@ -225,7 +221,7 @@ const App: React.FC = () => {
               <div className="space-y-4">
                  {state.resultSrc ? (
                     <>
-                        {/* Result Image Area - Fully Independent Container */}
+                        {/* Result Image Area */}
                         <div className="bg-gray-900/50 rounded-xl border border-gray-800 p-1 relative overflow-hidden">
                              <img src={state.resultSrc} alt="Result" className="w-full rounded-lg" />
                              <div className="absolute top-4 right-4 bg-black/70 backdrop-blur text-white text-xs px-2 py-1 rounded flex items-center gap-1 border border-green-500/50 z-10">
@@ -234,7 +230,7 @@ const App: React.FC = () => {
                              </div>
                         </div>
 
-                        {/* Action Toolbar - Independent Container Below */}
+                        {/* Action Toolbar */}
                         <div className="bg-gray-800 rounded-xl p-4 flex flex-wrap items-center justify-between border border-gray-700 shadow-xl">
                              <button 
                                 onClick={handleDiscard} 
@@ -263,20 +259,22 @@ const App: React.FC = () => {
                         </div>
                     </>
                  ) : (
-                    <div className="bg-gray-900/50 rounded-xl border border-gray-800 relative p-1 overflow-hidden">
+                    <div className="bg-gray-900/50 rounded-xl border border-gray-800 relative p-1 overflow-hidden min-h-[300px] flex items-center justify-center">
                         <CanvasEditor 
                             imageSrc={state.imageSrc}
                             onSelectionChange={handleSelectionChange}
                             resetSelectionTrigger={resetTrigger}
                         />
+
                         {state.isProcessing && (
                             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg">
                                 <div className="relative w-16 h-16 mb-4">
                                   <div className="absolute inset-0 border-4 border-gray-600 rounded-full"></div>
                                   <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
                                 </div>
-                                <p className="text-purple-200 font-bold text-lg animate-pulse">Inpainting...</p>
-                                <p className="text-gray-400 text-sm mt-2">Processing mask & blending text</p>
+                                <p className="text-purple-200 font-bold text-lg animate-pulse">
+                                    Refining Text...
+                                </p>
                             </div>
                         )}
                     </div>
@@ -289,44 +287,51 @@ const App: React.FC = () => {
                
                <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 sticky top-24">
                   <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-lg font-bold text-white">Edit Settings</h3>
+                      <h3 className="text-lg font-bold text-white">
+                          Inpaint Controls
+                      </h3>
+                      <span className="text-xs px-2 py-1 bg-gray-800 rounded text-gray-500 border border-gray-700">
+                          Nano Banana Pro
+                      </span>
                   </div>
 
-                  {/* Steps Indicator */}
                   <div className="space-y-6">
-                      {/* Step 1 */}
+                      
+                      {/* Step 1: Selection */}
                       <div className={`transition-colors duration-300 ${state.selection ? 'text-gray-400' : 'text-white'}`}>
                           <div className="flex items-center gap-3 mb-2">
-                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${state.selection ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'}`}>
-                                 {state.selection ? '✓' : '1'}
-                             </div>
-                             <span className="font-medium">Select Region</span>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${state.selection ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'}`}>
+                                  {state.selection ? '✓' : '1'}
+                              </div>
+                              <span className="font-medium">Select Region</span>
                           </div>
                           <p className="text-sm pl-9 text-gray-500">
-                             Draw a box on the image around the text you want to replace.
+                              Draw a box around the text you want to replace.
                           </p>
                       </div>
 
-                      {/* Step 2 */}
+                      {/* Step 2: Prompt */}
                       <div className={`transition-colors duration-300 ${!state.selection ? 'opacity-50' : 'opacity-100'}`}>
                           <div className="flex items-center gap-3 mb-2">
-                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${state.inputText ? 'bg-green-500 text-black' : 'bg-gray-700 text-white'}`}>
+                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${state.inputText ? 'bg-green-500 text-black' : 'bg-yellow-500 text-black'}`}>
                                  2
                              </div>
-                             <span className="font-medium text-white">Enter Replacement Text</span>
+                             <span className="font-medium text-white">
+                                 Enter Replacement Text
+                             </span>
                           </div>
                           <div className="pl-9">
                               <textarea
                                 value={state.inputText}
                                 onChange={(e) => setState(prev => ({...prev, inputText: e.target.value}))}
                                 disabled={!state.selection || state.isProcessing}
-                                placeholder={state.selection ? "Type new text (e.g., 限量優惠)..." : "Select a region first..."}
+                                placeholder={state.selection ? "Type new text..." : "Select a region first..."}
                                 className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white placeholder-gray-600 focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none h-24 disabled:cursor-not-allowed disabled:opacity-50"
                               />
                           </div>
                       </div>
 
-                      {/* Step 3 (Action) */}
+                      {/* Submit */}
                       <div className="pt-4 border-t border-gray-800">
                           <button
                              onClick={handleProcess}
@@ -345,7 +350,7 @@ const App: React.FC = () => {
                
                {/* Tip */}
                <div className="bg-blue-900/20 border border-blue-900/50 rounded-lg p-4 text-sm text-blue-300">
-                   <p><strong>Pro Tip:</strong> For best results with Chinese characters, ensure your selection box includes a small margin around the text but doesn't cut into graphical elements you want to keep.</p>
+                   <p><strong>Pro Tip:</strong> Ensure your selection box includes a small margin around the text. The Visual Guide system will help the AI align pixels perfectly.</p>
                </div>
 
             </div>
@@ -373,7 +378,7 @@ const App: React.FC = () => {
                <h3 className="text-xl font-bold text-white">Start Over?</h3>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              This will discard all current progress and edits. You will be returned to the image upload screen. Are you sure you want to continue?
+              This will discard all current progress. Are you sure?
             </p>
             <div className="flex gap-3 justify-end">
               <button
