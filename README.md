@@ -26,11 +26,10 @@ TextInpaint Pro 是一款基於 Google 最新 Gemini 3 Pro Image (Nano Banana Pr
 - Gemini 3 Pro Image Model (gemini-3-pro-image-preview):  
   使用代號為 "Nano Banana Pro" 的頂尖影像生成模型。該模型具備極強的語意理解與圖像合成能力，能聽懂 "Replace text inside the mask" 等複雜指令。
 
-- 雙圖遮罩策略 (Dual-Image Masking Strategy):  
-  為了防止 AI「幻覺」或過度修改，前端程式碼 (services/geminiService.ts) 會在使用者框選範圍時，動態生成一張與原圖等比例的黑白遮罩圖 (Mask)。
-  - 黑色區域: 嚴格保護區，AI 絕不修改。
-  - 白色區域: 編輯區，AI 僅在此範圍內進行 Inpainting。  
-    透過同時發送「原圖」與「遮罩圖」給 API，確保修改範圍精確到像素等級。
+- 遮罩策略 (Visual Reference Strategy):  
+  動態生成一張「視覺導引圖 (Visual Guide)」。這張圖會將原圖的非編輯區域壓暗 (Dimmed)，並在編輯區域畫上鮮豔的邊框。
+  - 好處是，模型能同時看到「圖片內容」與「標記位置」，這能提供最強的像素對齊能力，解決位置偏移問題。
+  - 比純黑白遮罩更有效，它會將非編輯區壓暗並用綠框標示編輯區，讓 AI 能完美對齊像素，不再改錯地方。
 
 Tech Stack:
 
